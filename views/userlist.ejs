@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <title>User List</title>
+  </head>
+  <body>
+    <h1>Users</h1>
+
+    <table border="1">
+      <tr>
+        <th>Username</th>
+        <th>First</th>
+        <th>Last</th>
+        <th>Email</th>
+      </tr>
+
+      <% users.forEach(u => { %>
+        <tr>
+          <td><%= u.username %></td>
+          <td><%= u.first %></td>
+          <td><%= u.last %></td>
+          <td><%= u.email %></td>
+        </tr>
+      <% }) %>
+    </table>
+
+    <p><a href="/">Back</a></p>
+  </body>
+</html>

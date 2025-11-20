@@ -1,14 +1,15 @@
 var mysql = require('mysql2');
+require('dotenv').config()
 
 const db = mysql.createPool({
-  host: 'localhost',
-  user: 'berties_books_app',
-  password: 'qwertyuiop',
-  database: 'berties_books',
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'berties_books_app',
+  password: process.env.DB_PASSWORD || 'qwertyuiop',
+  database: process.env.DB_NAME || 'berties_books',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-});
+})
 
 global.db = db;
 
