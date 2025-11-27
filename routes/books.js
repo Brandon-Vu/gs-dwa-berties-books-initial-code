@@ -5,8 +5,7 @@ const router = express.Router()
 // Database connection 
 const redirectLogin = (req, res, next) => {
   if (!req.session.userId) {
-    const base = req.app.locals.baseURL || "";
-    return res.redirect(base + '/users/login');
+    return res.redirect('/usr/273/users/login');
   }
   next();
 };
