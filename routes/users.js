@@ -1,46 +1,69 @@
 var express = require('express')
 var router = express.Router()
 const bcrypt = require('bcrypt')
+const { check, validationResult } = require('express-validator')
 
 const saltRounds = 10
 
+// Middleware to protect routes – only allow logged-in users
+const redirectLogin = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.redirect('/users/login')
+  }
+  next()
+}
 
 router.get('/register', (req, res) => {
-  res.render('register.ejs')
+  res.render('register.ejs', { errors: [] })
 })
 
-// Database setup
-router.post('/registered', (req, res, next) => {
-  const plainPassword = req.body.password
-  const username = req.body.username
-  const first = req.body.first
-  const last = req.body.last
-  const email = req.body.email
+// Registration with validation + sanitisation
+router.post(
+  '/registered',
+  [
+    check('email')
+      .isEmail()
+      .withMessage('Email must be valid'),
+    check('username')
+      .isLength({ min: 5, max: 20 })
+      .withMessage('Username must be between 5 and 20 characters'),
+    check('password')
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters long')
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req)
 
-  if (!username || !plainPassword) {
-    return res.send("Username and password required.")
-  }
+    if (!errors.isEmpty()) {
+      return res.render('register.ejs', { errors: errors.array() })
+    }
 
-  bcrypt.hash(plainPassword, saltRounds, (err, hashedPassword) => {
-    if (err) return next(err)
+    const plainPassword = req.body.password
+    const username = req.sanitize(req.body.username)
+    const first = req.sanitize(req.body.first)
+    const last = req.sanitize(req.body.last)
+    const email = req.sanitize(req.body.email)
 
-    const sql = `INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?,?,?,?,?)`
-    const params = [username, first, last, email, hashedPassword]
+    if (!username || !plainPassword) {
+      return res.send("Username and password required.")
+    }
 
-    db.query(sql, params, (err2) => {
-      if (err2) return next(err2)
+    bcrypt.hash(plainPassword, saltRounds, (err, hashedPassword) => {
+      if (err) return next(err)
 
-      let output =
-        `Hello ${first} ${last}! You are now registered. ` +
-        `Your password is: ${plainPassword} and your hashed password is: ${hashedPassword}`
+      const sql = `INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?,?,?,?,?)`
+      const params = [username, first, last, email, hashedPassword]
 
-      res.send(output)
+      db.query(sql, params, (err2) => {
+        if (err2) return next(err2)
+
+        res.send(`Hello ${first} ${last}! You are now registered. Your password is: ${plainPassword} and your hashed password is: ${hashedPassword}`)
+      })
     })
-  })
-})
+  }
+)
 
-// User listing
-router.get('/list', (req, res, next) => {
+router.get('/list', redirectLogin, (req, res, next) => {
   db.query(
     "SELECT username, first, last, email FROM users ORDER BY username",
     (err, results) => {
@@ -50,12 +73,11 @@ router.get('/list', (req, res, next) => {
   )
 })
 
-
 router.get('/login', (req, res) => {
-  res.render("login.ejs", { error: null })
+  res.render('login.ejs', { error: null })
 })
 
-// Login handling with audit logging
+// Audit logging helper
 function logAttempt(username, success, ip) {
   db.query(
     "INSERT INTO login_audit (username, success, ip_address) VALUES (?,?,?)",
@@ -70,9 +92,7 @@ router.post('/loggedin', (req, res, next) => {
   const password = req.body.password
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
 
-  const sql = "SELECT * FROM users WHERE username = ?"
-
-  db.query(sql, [username], (err, rows) => {
+  db.query("SELECT * FROM users WHERE username = ?", [username], (err, rows) => {
     if (err) return next(err)
 
     if (rows.length === 0) {
@@ -90,14 +110,17 @@ router.post('/loggedin', (req, res, next) => {
         return res.render('login.ejs', { error: "Invalid username or password" })
       }
 
+      // Successful login
       logAttempt(username, true, ip)
-      res.send(`Login successful! Welcome back, ${user.first} ${user.last}`)
+      req.session.userId = username
+
+      res.redirect('/') // Redirect to home page after login
     })
   })
 })
 
-// Audit log viewing
-router.get('/audit', (req, res, next) => {
+// Audit log page
+router.get('/audit', redirectLogin, (req, res, next) => {
   db.query(
     "SELECT username, success, ip_address, attempted_at FROM login_audit ORDER BY attempted_at DESC",
     (err, results) => {

@@ -1,22 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Register for <%= shopData.shopName %></title>
-    <link rel="stylesheet" type="text/css" href="/main.css" />
-  </head>
-  <body>
-    <h1>Register for <%= shopData.shopName %></h1>
+<head>
+    <title>Register for Bertie's Books</title>
+</head>
+<body>
 
-    <form method="POST" action="/users/registered">
-      <p>Username: <input id="username" type="text" name="username" required /></p>
-      <p>First name: <input id="first" type="text" name="first" /></p>
-      <p>Last name: <input id="last" type="text" name="last" /></p>
-      <p>Email: <input id="email" type="email" name="email" /></p>
-      <p>Password: <input id="password" type="password" name="password" required /></p>
+<h1>Register for Bertie's Books</h1>
 
-      <input type="submit" value="Register" />
-    </form>
+<!-- Display validation errors if any -->
+<% if (errors && errors.length > 0) { %>
+    <div style="color:red; margin-bottom: 15px;">
+        <ul>
+            <% errors.forEach(function(error) { %>
+                <li><%= error.msg %></li>
+            <% }) %>
+        </ul>
+    </div>
+<% } %>
 
-    <p><a href="/">Back</a></p>
-  </body>
+<form action="/users/registered" method="post">
+    Username: <input type="text" name="username" /><br><br>
+    First name: <input type="text" name="first" /><br><br>
+    Last name: <input type="text" name="last" /><br><br>
+    Email: <input type="text" name="email" /><br><br>
+    Password: <input type="password" name="password" /><br><br>
+
+    <input type="submit" value="Register" />
+</form>
+
+<br>
+<a href="/">Back</a>
+
+</body>
 </html>
