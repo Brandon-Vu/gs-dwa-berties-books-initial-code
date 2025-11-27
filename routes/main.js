@@ -4,7 +4,7 @@ const router = express.Router()
 // Redirect middleware for protected routes
 const redirectLogin = (req, res, next) => {
   if (!req.session.userId) {
-    return res.redirect('/users/login')
+    return res.redirect('./login')
   }
   next()
 }
