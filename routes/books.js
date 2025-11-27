@@ -5,8 +5,7 @@ const router = express.Router()
 // Reuse the same pattern for route protection
 const redirectLogin = (req, res, next) => {
   if (!req.session.userId) {
-    const base = req.app.locals.baseURL || "";
-    return res.redirect('./login');
+    return res.redirect('../users/login');
   }
   next();
 };
