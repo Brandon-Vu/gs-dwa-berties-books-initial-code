@@ -5,10 +5,11 @@ const router = express.Router()
 // Reuse the same pattern for route protection
 const redirectLogin = (req, res, next) => {
   if (!req.session.userId) {
-    return res.redirect('./login')
+    const base = req.app.locals.baseURL || "";
+    return res.redirect(base + '/users/login');
   }
-  next()
-}
+  next();
+};
 
 router.get('/search', function (req, res, next) {
   res.render("search.ejs")
