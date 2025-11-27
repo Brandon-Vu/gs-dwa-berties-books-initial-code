@@ -134,4 +134,15 @@ router.get('/audit', redirectLogin, (req, res, next) => {
   )
 })
 
+// Logout route
+router.get('/logout', redirectLogin, (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.redirect('./')
+    }
+    res.render('loggedout.ejs')
+  })
+})
+
+
 module.exports = router
