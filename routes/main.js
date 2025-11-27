@@ -23,7 +23,7 @@ router.get('/about', function (req, res, next) {
 router.get('/logout', redirectLogin, (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      return res.redirect('../users/login')
+      return res.redirect('/users/login')
     }
     res.redirect('/')   // Redirect to home page after logout
   })
